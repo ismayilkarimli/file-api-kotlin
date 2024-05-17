@@ -1,0 +1,83 @@
+### Upload File test1.txt
+POST http://localhost:6011/files
+Authorization: Basic YWRtaW46aHVudGVyMg==
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="name"
+
+cat
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="contentType"
+
+text/plain
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="meta"
+
+{ "createdBy": "Ismayil", "animal": "Cat" }
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="source"
+
+timesheet
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="expireTime"
+
+2024-12-31T23:59:59Z
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="content"; filename="README.md"
+Content-Type: text/plain
+
+< ./test1.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+> {% client.global.set("token1", response.body.token); %}
+
+### Upload File test2.txt
+POST http://localhost:6011/files
+Authorization: Basic YWRtaW46aHVudGVyMg==
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="name"
+
+dog
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="contentType"
+
+text/plain
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="meta"
+
+{ "createdBy": "Ismayil", "animal": "Dog" }
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="source"
+
+timesheet
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="content"; filename="README.md"
+Content-Type: text/plain
+
+< ./test2.txt
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+> {% client.global.set("token2", response.body.token); %}
+
+### Get File Metadata (replace token UUIDs with the UUIDs obtained from above requests)
+POST http://localhost:6011/files/metas
+Authorization: Basic YWRtaW46aHVudGVyMg==
+Content-Type: application/json
+
+{
+  "tokens": [
+    "{{token1}}",
+    "{{token2}}"
+  ]
+}
+
+### Download File (replace path variable UUID with one of the results obtained from above)
+GET http://localhost:6011/file/{{token1}}
+Authorization: Basic YWRtaW46aHVudGVyMg==
+
+### Delete File
+DELETE http://localhost:6011/file/{{token2}}
+Authorization: Basic YWRtaW46aHVudGVyMg==

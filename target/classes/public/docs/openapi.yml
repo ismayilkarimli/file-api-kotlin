@@ -1,0 +1,254 @@
+openapi: 3.0.0
+info:
+  version: '1.0.0'
+  title: File API
+
+paths:
+  /files:
+    post:
+      summary: Upload a file
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FileUploadRequest'
+      responses:
+        '201':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileUploadResponse'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /files/metas:
+    post:
+      summary: Get file metadata
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FileMetasRequest'
+      responses:
+        '200':
+          description: Metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileMetasResponse'
+  /file/{token}:
+    get:
+      summary: Download a file
+      security:
+        - basicAuth: []
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+          description: Token of the file to download
+      responses:
+        '200':
+          description: File downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            X-Filename:
+              description: Name of the downloaded file
+              schema:
+                type: string
+            X-Filesize:
+              description: Size of the downloaded file
+              schema:
+                type: integer
+            X-CreateTime:
+              description: Creation time of the downloaded file
+              schema:
+                type: string
+                format: date-time
+            Content-Type:
+              description: Content type of the downloaded file
+              schema:
+                type: string
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a file
+      security:
+        - basicAuth: []
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+          description: Token of the file to delete
+      responses:
+        '204':
+          description: File deleted successfully
+        '404':
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    FileUploadRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        contentType:
+          type: string
+        meta:
+          type: string
+        source:
+          type: string
+        expireTime:
+          type: string
+          format: date-time
+          nullable: true
+        content:
+          type: string
+          format: binary
+      required:
+        - name
+        - contentType
+        - meta
+        - source
+        - content
+    FileUploadResponse:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+        - token
+    FileMetasRequest:
+      type: object
+      properties:
+        tokens:
+          type: array
+          items:
+            type: string
+      required:
+        - tokens
+    FileMetaResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        filename:
+          type: string
+        size:
+          type: integer
+          format: int64
+        contentType:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+        meta:
+          type: object
+          additionalProperties:
+            type: string
+        expireTime:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - token
+        - filename
+        - size
+        - contentType
+        - createTime
+        - meta
+    FileMetasResponse:
+      type: object
+      properties:
+        files:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/FileMetaResponse'
+      required:
+        - files
+    FileResponse:
+      type: object
+      properties:
+        content:
+          type: string
+          format: binary
+        fileName:
+          type: string
+        fileSize:
+          type: integer
+          format: int64
+        contentType:
+          type: string
+        createTime:
+          type: string
+          format: date-time
+      required:
+        - content
+        - fileName
+        - fileSize
+        - contentType
+        - createTime
+    ErrorResponse:
+      type: object
+      properties:
+        data:
+          type: 'null'
+          nullable: true
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              message:
+                type: string
+              code:
+                type: string
+                nullable: true
+        status:
+          type: integer
+          format: int32
+      required:
+        - errors
+        - status
